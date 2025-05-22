@@ -1,0 +1,24 @@
+# ... other entries ...
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+
+# IDE specific
+.idea/
+.vscode/
+
+# DB data (if you ever map it directly to a local folder instead of a named volume)
+# postgres_data/

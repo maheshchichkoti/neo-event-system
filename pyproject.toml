@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "neo_event_system"
+version = "0.1.0"
+description = "Collaborative Event Management System API"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.10"  # Updated to 3.10 to match your interpreter from traceback
+fastapi = "^0.104.0"
+uvicorn = {extras = ["standard"], version = "^0.23.2"}
+sqlalchemy = {version = "^2.0.23", extras = ["asyncio"]} # Add asyncio extra for SQLAlchemy
+pydantic = {extras = ["email"], version = "^2.4.2"}
+pydantic-settings = "^2.1.0" # <--- ADDED THIS LINE (use latest compatible version)
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+python-dotenv = "^1.0.0"
+alembic = "^1.12.1"      # For database migrations (kept as main dependency)
+asyncpg = "^0.28.0"      # Async PostgreSQL driver
+psycopg2-binary = "^2.9.9" # Sync PostgreSQL driver (for Alembic sync mode)
+greenlet = "^3.0.1"      # Often a dependency of SQLAlchemy for certain contexts
+python-dateutil = "^2.8.2" # For parsing RRULEs
+deepdiff = "^6.7.1"      # For diffing objects
+python-multipart = "^0.0.9"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+httpx = "^0.25.1"       # For testing FastAPI endpoints
+pytest-asyncio = "^0.21.1" # For testing async code with pytest
+# alembic can also be here if you consider it purely dev, but often it's main.
+# If alembic is already in main dependencies, you don't need it here again.
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
