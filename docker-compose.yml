@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.8" # This line is obsolete, can be removed
 
 services:
   db:
@@ -9,10 +9,12 @@ services:
     ports:
       - "5432:5432"
     environment:
+      # These will be picked up from your .env file at the root of the project
+      # The :-user syntax is a fallback if the .env var is missing/empty.
       POSTGRES_USER: ${POSTGRES_USER:-user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-neo_events_db}
-      POSTGRES_HOST_AUTH_METHOD: md5
+      # POSTGRES_HOST_AUTH_METHOD: md5 # This is often default for user/pass, but explicit can be good
     healthcheck:
       test:
         [
@@ -30,20 +32,32 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: neo_events_api_container
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # The command is now handled by entrypoint.sh, so this can be removed or commented.
+    # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - .:/app # ✅ Mount entire project
+      # For local development, mounting the app code allows live reload IF uvicorn uses --reload
+      # If entrypoint.sh doesn't use --reload, this primarily helps avoid rebuilds for code changes.
+      - ./app:/app/app
+      - ./alembic:/app/alembic # Mount alembic folder too
+      # You might not need to mount the entire project root (.), just specific code folders.
+      # For Render, this volume mount is irrelevant as it uses the built image.
     ports:
       - "8000:8000"
     environment:
+      # These are read from your .env file by docker-compose
+      # and then passed into the container.
+      # The entrypoint.sh script will also have access to these.
       DATABASE_URL: ${DATABASE_URL}
       SECRET_KEY: ${SECRET_KEY}
-      ALGORITHM: ${ALGORITHM}
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
-      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS}
+      # Pass all necessary env vars for both the app and the entrypoint.sh script
+      POSTGRES_USER: ${POSTGRES_USER:-user} # For pg_isready in entrypoint if needed
+      POSTGRES_DB: ${POSTGRES_DB:-neo_events_db} # For pg_isready
+      # SYNC_DATABASE_URL: ${SYNC_DATABASE_URL} # If alembic/env.py uses it directly from os.environ
+      # ALEMBIC_DATABASE_URL: ${ALEMBIC_DATABASE_URL} # If alembic/env.py uses it
+
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_healthy # Excellent, waits for DB to be healthy
     restart: unless-stopped
 
 volumes:

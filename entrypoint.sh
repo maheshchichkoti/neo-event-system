@@ -9,8 +9,8 @@ until pg_isready -h db -U ${POSTGRES_USER} -d ${POSTGRES_DB}; do
   sleep 2
 done
 
-echo "INFO: PostgreSQL is ready. Running migrations..."
+echo "INFO: Running database migrations..."
 alembic upgrade head
 
 echo "INFO: Starting Uvicorn server..."
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --forwarded-allow-ips='*'
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --forwarded-allow-ips='*'
