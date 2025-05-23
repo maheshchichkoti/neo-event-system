@@ -2,6 +2,7 @@
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete as sqlalchemy_delete, update as sqlalchemy_update, and_
+from sqlalchemy.orm import joinedload
 
 from app.db.models import EventPermission, Event, RoleEnum, User
 from app.schemas.permission import ShareEventUserPermission # For input type if needed
@@ -20,13 +21,17 @@ class CRUDPermission:
     async def add_permission(
         self, db: AsyncSession, *, event_id: int, user_id: int, role: RoleEnum
     ) -> EventPermission:
-        # Check if user exists
-        user_to_share_with = await db.get(User, user_id)
+        # Check if user exists - using async pattern
+        user_stmt = select(User).where(User.id == user_id)
+        user_result = await db.execute(user_stmt)
+        user_to_share_with = user_result.scalar_one_or_none()
         if not user_to_share_with:
             raise ValueError(f"User with ID {user_id} not found.")
         
-        # Check if event exists
-        event = await db.get(Event, event_id)
+        # Check if event exists - using async pattern
+        event_stmt = select(Event).where(Event.id == event_id)
+        event_result = await db.execute(event_stmt)
+        event = event_result.scalar_one_or_none()
         if not event:
             raise ValueError(f"Event with ID {event_id} not found.")
 
@@ -71,8 +76,10 @@ class CRUDPermission:
         if not permission_to_update:
             return None # Or raise error: "Permission not found"
 
-        # Prevent changing owner's role from OWNER
-        event = await db.get(Event, event_id) # Fetch event to check owner
+        # Prevent changing owner's role from OWNER - using async pattern
+        event_stmt = select(Event).where(Event.id == event_id)
+        event_result = await db.execute(event_stmt)
+        event = event_result.scalar_one_or_none()
         if event and event.owner_id == user_id and new_role != RoleEnum.OWNER:
             raise ValueError("Owner's role cannot be changed from OWNER.")
 
@@ -89,8 +96,10 @@ class CRUDPermission:
     async def remove_user_permission(
         self, db: AsyncSession, *, event_id: int, user_id: int
     ) -> bool:
-        # Prevent removing owner's permission
-        event = await db.get(Event, event_id)
+        # Prevent removing owner's permission - using async pattern
+        event_stmt = select(Event).where(Event.id == event_id)
+        event_result = await db.execute(event_stmt)
+        event = event_result.scalar_one_or_none()
         if event and event.owner_id == user_id:
             raise ValueError("Owner's permission cannot be removed. To change ownership, a different mechanism would be needed.")
 
