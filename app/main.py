@@ -40,26 +40,21 @@ async def read_root():
     return {"message": "Welcome to the NeoFi Event Management API!"}
 
 
-@app.get("/health", tags=["Health"]) # Added a tag for better organization in docs
+@app.get("/health", tags=["Health"])
 async def health_check(db: AsyncSession = Depends(get_db)):
     """
     Perform a health check of the API and database connection.
     """
     try:
-        # Example: A simple query to check DB connection
-        # from sqlalchemy import text
-        # result = await db.execute(text("SELECT 1"))
-        # if result.scalar_one() != 1:
-        #     raise HTTPException(status_code=503, detail="Database connectivity issue: Query failed")
-        return {"status": "ok", "message": "API is healthy and database connection seems okay."}
-    except ConnectionRefusedError: # More specific error for DB connection refusal
-         raise HTTPException(status_code=503, detail="Database connection refused.")
+        # Simple query to check DB connection
+        from sqlalchemy import text
+        result = await db.execute(text("SELECT 1"))
+        value = result.scalar_one()
+        return {"status": "ok", "message": "API is healthy and database connection is working.", "db_check": value == 1}
     except Exception as e:
-        # In a real scenario, log the error `e`
-        # logger.error(f"Health check failed: {e}")
-        raise HTTPException(status_code=503, detail=f"API health check failed: An error occurred with the database connection.")
-
-
+        # Log the error
+        raise HTTPException(status_code=503, detail=f"API health check failed: {str(e)}")
+    
 # Include API routers
 # The prefix here means all routes in auth_router will start with /api/v1/auth
 app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["Authentication"])
