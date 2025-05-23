@@ -71,8 +71,12 @@ def get_alembic_db_url():
     if app_settings:
         sync_db_url_settings = getattr(app_settings, 'SYNC_DATABASE_URL', None)
         if sync_db_url_settings:
-            print(f"  Using SYNC_DATABASE_URL from app_settings: {sync_db_url_settings}")
-            return sync_db_url_settings
+                if sync_db_url_settings.startswith("postgresql+asyncpg://"):
+                    sync_db_url_settings = sync_db_url_settings.replace("postgresql+asyncpg://", "postgresql://")
+                    print(f"  Converted SYNC_DATABASE_URL to sync: {sync_db_url_settings}")
+                else:
+                    print(f"  Using SYNC_DATABASE_URL from app_settings: {sync_db_url_settings}")
+                return sync_db_url_settings
 
         main_db_url_settings = getattr(app_settings, 'DATABASE_URL', None)
         if main_db_url_settings:
