@@ -31,7 +31,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: neo_events_api_container
+    # container_name: neo_events_api_container
     # The command is now handled by entrypoint.sh, so this can be removed or commented.
     # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
