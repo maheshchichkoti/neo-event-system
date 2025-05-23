@@ -24,9 +24,9 @@ else:
     print(f"Alembic env.py: .env file not found at {dotenv_path}, relying on system environment variables.")
 
 # Import your app's Base (metadata) and models so Alembic sees your tables
-from app.db.base import Base # Your SQLAlchemy Base
-from app.db import models  # This ensures all your models are registered with Base.metadata
-
+from app.db.base import Base
+from app.db import models  # This will register all models
+from app.db.sync_session import sync_engine
 # Import app settings (which might contain SYNC_DATABASE_URL or DATABASE_URL)
 # This needs to happen AFTER potentially loading .env if settings relies on it at import time
 try:
@@ -152,11 +152,7 @@ def run_migrations_online() -> None:
     engine_config["sqlalchemy.url"] = effective_db_url
     
     print(f"Alembic: Running migrations online. Connecting to: {effective_db_url}")
-    connectable = engine_from_config(
-        engine_config, # Use the modified configuration with our dynamic URL
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = sync_engine
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
