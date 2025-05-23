@@ -1,20 +1,20 @@
-version: "3.8" # This line is obsolete, can be removed
+# version: "3.8" # This line is obsolete in newer Docker Compose, can be removed
 
 services:
   db:
     image: postgres:15-alpine
     container_name: neo_events_db_container
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/ # Persist data for the database
     ports:
-      - "5432:5432"
+      - "5432:5432" # Map host port to container port for local access to DB
     environment:
-      # These will be picked up from your .env file at the root of the project
-      # The :-user syntax is a fallback if the .env var is missing/empty.
+      # These values will be picked up from your .env file at the project root.
+      # The :-default_value syntax is a fallback if the .env var is missing or empty.
       POSTGRES_USER: ${POSTGRES_USER:-user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-neo_events_db}
-      # POSTGRES_HOST_AUTH_METHOD: md5 # This is often default for user/pass, but explicit can be good
+      # POSTGRES_HOST_AUTH_METHOD: md5 # Usually default for user/password, can be explicit if needed
     healthcheck:
       test:
         [
@@ -24,41 +24,54 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 10s # Give DB time to initialize before first healthcheck
     restart: unless-stopped
 
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
-    # container_name: neo_events_api_container
-    # The command is now handled by entrypoint.sh, so this can be removed or commented.
+      context: . # Build context is the current directory (project root)
+      dockerfile: Dockerfile # Specifies the Dockerfile to use
+    container_name: neo_events_api_container
+    # COMMAND IS REMOVED/COMMENTED OUT because ENTRYPOINT in Dockerfile handles it.
+    # If you had a command here, it might conflict or be passed as args to entrypoint.sh.
     # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      # For local development, mounting the app code allows live reload IF uvicorn uses --reload
-      # If entrypoint.sh doesn't use --reload, this primarily helps avoid rebuilds for code changes.
+      # For local development:
+      # Mount your application code into the container.
+      # This allows changes to Python files to be reflected if Uvicorn uses --reload
+      # (or you restart the container without rebuilding the image for non-reload setups).
+      # Note: If your entrypoint.sh runs Uvicorn WITHOUT --reload, you'll need to
+      # restart the container (`docker-compose restart api`) to see code changes.
       - ./app:/app/app
-      - ./alembic:/app/alembic # Mount alembic folder too
-      # You might not need to mount the entire project root (.), just specific code folders.
-      # For Render, this volume mount is irrelevant as it uses the built image.
+      - ./alembic:/app/alembic
+      # You might also mount alembic.ini if you frequently change it and want to avoid rebuilds:
+      # - ./alembic.ini:/app/alembic.ini
     ports:
-      - "8000:8000"
+      - "8000:8000" # Map host port 8000 to container port 8000 (or $PORT if used by entrypoint)
     environment:
-      # These are read from your .env file by docker-compose
-      # and then passed into the container.
-      # The entrypoint.sh script will also have access to these.
+      # These environment variables are passed into the 'api' container.
+      # Docker Compose reads them from the .env file in the project root.
+      # They are then accessible by your application (app.core.config)
+      # and by the entrypoint.sh script.
       DATABASE_URL: ${DATABASE_URL}
       SECRET_KEY: ${SECRET_KEY}
-      # Pass all necessary env vars for both the app and the entrypoint.sh script
-      POSTGRES_USER: ${POSTGRES_USER:-user} # For pg_isready in entrypoint if needed
-      POSTGRES_DB: ${POSTGRES_DB:-neo_events_db} # For pg_isready
-      # SYNC_DATABASE_URL: ${SYNC_DATABASE_URL} # If alembic/env.py uses it directly from os.environ
-      # ALEMBIC_DATABASE_URL: ${ALEMBIC_DATABASE_URL} # If alembic/env.py uses it
+      ALGORITHM: ${ALGORITHM:-HS256} # Example with a default
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+
+      # Variables needed by entrypoint.sh for pg_isready (if you keep that part for local)
+      # or potentially by alembic/env.py if it falls back to direct os.environ.
+      # These will also take values from your root .env file.
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password} # Be cautious about passing passwords this way if not needed by entrypoint
+      POSTGRES_DB: ${POSTGRES_DB:-neo_events_db}
+      # SYNC_DATABASE_URL: ${SYNC_DATABASE_URL} # If alembic/env.py needs it directly
+      # ALEMBIC_DATABASE_URL: ${ALEMBIC_DATABASE_URL} # If alembic/env.py needs it directly
 
     depends_on:
       db:
-        condition: service_healthy # Excellent, waits for DB to be healthy
+        condition: service_healthy # API service will wait for DB to be healthy before starting
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres_data: # Defines the named volume for PostgreSQL data persistence
