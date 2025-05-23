@@ -10,8 +10,7 @@ from app.core.config import settings
 from app.db.models import User # Your SQLAlchemy User model
 from app.schemas.token import TokenData
 from app import crud # <--- CORRECT IMPORT FOR CRUD PACKAGE
-from app.db.base import get_db
-
+from app.db.session import get_db
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 async def get_current_user(

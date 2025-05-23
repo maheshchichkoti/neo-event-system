@@ -8,7 +8,7 @@ from deepdiff import DeepDiff # For diffing event versions
 
 from app import schemas # Root for Pydantic schemas
 from app import crud    # Root for CRUD operations
-from app.db.base import get_db
+from app.db.session import get_db
 from app.api.deps import get_current_active_user
 from app.db.models import User as DBUser, RoleEnum, Event as DBEvent # SQLAlchemy models
 # DBEventPermission import was not strictly needed as perm_orm is typed by inference 

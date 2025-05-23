@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import schemas # Use __init__.py for easier imports
 from app import crud
-from app.db.base import get_db
+from app.db.session import get_db
 from app.core.security import verify_password, create_token_pair, decode_token, create_access_token 
 from app.api.deps import get_current_active_user # We'll define this dependency soon
 

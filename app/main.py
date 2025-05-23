@@ -7,8 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession # Keep this for the health check
 # from app.db import models # Models are used by Alembic and CRUD/Schemas, not directly here usually
 
 # Import the get_db dependency for the health check
-from app.db.base import get_db
-
+from app.db.session import get_db
 # Import API routers
 from app.api.v1.endpoints import auth as auth_router
 from app.api.v1.endpoints import events as events_router # ADD THIS IMPORT

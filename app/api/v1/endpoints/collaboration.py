@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from app import schemas, crud
-from app.db.base import get_db
+from app.db.session import get_db
 from app.api.deps import get_current_active_user
 from app.db.models import User as DBUser, RoleEnum, Event as DBEvent # Import DBEvent for type hint
 
