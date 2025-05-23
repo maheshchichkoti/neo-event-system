@@ -177,7 +177,7 @@ Modularity: The application is structured into logical components (API endpoints
 This README should provide a solid overview for anyone looking at your project. Remember to replace placeholders and confirm all details. Good luck with your submission!
 **Key things to double-check and fill in for your `README.md`:**
 
-*   **`[YOUR_GITHUB_USERNAME]`**: Update this in the clone URL.
+*   **`maheshchichkoti`**: Update this in the clone URL.
 *   **Deployed Links**: Confirm they are correct.
 *   **Features Implemented/Not Implemented**: Make sure this list accurately reflects the final state of your project. Be honest about what you couldn't get to.
 *   **`.env.example`**: Create this file in your project root. It should list all necessary environment variables with placeholder or example values, e.g.:
